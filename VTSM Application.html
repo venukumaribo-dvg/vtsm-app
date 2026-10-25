@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vibin Technoproducts Service Management (VTSM)</title>
+
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel CDN for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tailwind Theme Customization -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-200">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // Translations Dictionary
+    const translations = {
+      en: {
+        appTitle: "VTSM Portal",
+        fullTitle: "Vibin Technoproducts Service Management",
+        dashboard: "Dashboard",
+        newTicket: "New Service Ticket",
+        forwardTrack: "Forward Tracking",
+        analytics: "Analytics & Reports",
+        settings: "Settings",
+        searchPlaceholder: "Search by Ticket ID, Customer Name, Serial No...",
+        allStatus: "All Statuses",
+        allProducts: "All Products",
+        ticketId: "Ticket ID",
+        customer: "Customer",
+        product: "Product & S/N",
+        status: "Status",
+        priority: "Priority",
+        assignedTo: "Assigned Tech",
+        date: "Date Created",
+        actions: "Actions",
+        createNewTicket: "Create Service Ticket",
+        customerName: "Customer Name",
+        contactNumber: "Contact Phone",
+        email: "Email Address",
+        productType: "Product Category",
+        modelNo: "Model Number",
+        serialNo: "Serial Number",
+        issueDescription: "Detailed Issue Description",
+        priorityLevel: "Priority Level",
+        submit: "Submit Ticket",
+        cancel: "Cancel",
+        forwardTrackingTitle: "Forward Tracking Log (Parts & Assemblies)",
+        partName: "Component / Part Name",
+        sourceSN: "Source Unit S/N",
+        targetSN: "Target Unit S/N",
+        transferredBy: "Transferred By",
+        logTransfer: "Log Part Transfer",
+        exportData: "Export CSV",
+        saveSettings: "Save Preferences",
+        themeToggle: "Toggle Dark Mode",
+        language: "Language",
+        low: "Low",
+        medium: "Medium",
+        high: "High",
+        critical: "Critical",
+        open: "Open",
+        inProgress: "In Progress",
+        pendingParts: "Pending Parts",
+        resolved: "Resolved",
+        closed: "Closed"
+      },
+      ta: {
+        appTitle: "VTSM போர்ட்டல்",
+        fullTitle: "விபின் டெக்னோபிராடக்ட்ஸ் சேவை மேலாண்மை",
+        dashboard: "முகப்பு பலகை",
+        newTicket: "புதிய சேவை டிக்கெட்",
+        forwardTrack: "முன்னோக்கி கண்காணிப்பு",
+        analytics: "பகுப்பாய்வு மற்றும் அறிக்கைகள்",
+        settings: "அமைப்புகள்",
+        searchPlaceholder: "டிக்கெட் ஐடி, வாடிக்கையாளர் பெயர் மூலம் தேடுக...",
+        allStatus: "அனைத்து நிலைகளும்",
+        allProducts: "அனைத்து தயாரிப்புகளும்",
+        ticketId: "டிக்கெட் ஐடி",
+        customer: "வாடிக்கையாளர்",
+        product: "தயாரிப்பு & வரிசை எண்",
+        status: "நிலை",
+        priority: "முன்னுரிமை",
+        assignedTo: "தொழில்நுட்ப வல்லுநர்",
+        date: "உருவாக்கப்பட்ட தேதி",
+        actions: "செயல்கள்",
+        createNewTicket: "சேவை டிக்கெட்டை உருவாக்குங்கள்",
+        customerName: "வாடிக்கையாளர் பெயர்",
+        contactNumber: "தொலைபேசி எண்",
+        email: "மின்னஞ்சல் முகவரி",
+        productType: "தயாரிப்பு வகை",
+        modelNo: "மாடல் எண்",
+        serialNo: "வரிசை எண் (S/N)",
+        issueDescription: "பிரச்சனை விளக்கம்",
+        priorityLevel: "முன்னுரிமை நிலை",
+        submit: "சமர்ப்பி",
+        cancel: "ரத்துசெய்",
+        forwardTrackingTitle: "பாகங்கள் முன்னேற்றக் கண்காணிப்பு பதிவு",
+        partName: "பாகத்தின் பெயர்",
+        sourceSN: "மூல அலகு S/N",
+        targetSN: "இலக்கு அலகு S/N",
+        transferredBy: "மாற்றியவர்",
+        logTransfer: "பரிமாற்றத்தைப் பதிவுசெய்",
+        exportData: "CSV ஆக பதிவிறக்கு",
+        saveSettings: "அமைப்புகளைச் சேமிக்கவும்",
+        themeToggle: "இருண்ட பயன்முறை",
+        language: "மொழி",
+        low: "குறைந்த",
+        medium: "நடுத்தர",
+        high: "உயர்",
+        critical: "மிகவும் அவசரம்",
+        open: "திறந்தது",
+        inProgress: "செயல்பாட்டில் உள்ளது",
+        pendingParts: "பாகங்கள் தேவை",
+        resolved: "தீர்க்கப்பட்டது",
+        closed: "மூடப்பட்டது"
+      },
+      hi: {
+        appTitle: "वीटीएसएम पोर्टल",
+        fullTitle: "विबिन टेक्नोप्रोडक्ट्स सर्विस मैनेजमेंट",
+        dashboard: "डैशबोर्ड",
+        newTicket: "नया सेवा टिकट",
+        forwardTrack: "फॉरवर्ड ट्रैकिंग",
+        analytics: "विश्लेषण और रिपोर्ट",
+        settings: "सेटिंग्स",
+        searchPlaceholder: "टिकट आईडी, ग्राहक नाम या सीरियल नंबर खोजें...",
+        allStatus: "सभी स्थितियां",
+        allProducts: "सभी उत्पाद",
+        ticketId: "टिकट आईडी",
+        customer: "ग्राहक",
+        product: "उत्पाद एवं सीरियल नंबर",
+        status: "स्थिति",
+        priority: "प्राथमिकता",
+        assignedTo: "तकनीशियन",
+        date: "बनाने की तिथि",
+        actions: "कार्रवाई",
+        createNewTicket: "सेवा टिकट बनाएं",
+        customerName: "ग्राहक का नाम",
+        contactNumber: "फोन नंबर",
+        email: "ईमेल पता",
+        productType: "उत्पाद श्रेणी",
+        modelNo: "मॉडल संख्या",
+        serialNo: "सीरियल नंबर",
+        issueDescription: "समस्या का विवरण",
+        priorityLevel: "प्राथमिकता स्तर",
+        submit: "जमा करें",
+        cancel: "रद्द करें",
+        forwardTrackingTitle: "फॉरवर्ड ट्रैकिंग लॉग (पुर्जे और असेंबली)",
+        partName: "पुर्जे का नाम",
+        sourceSN: "मूल इकाई S/N",
+        targetSN: "लक्ष्य इकाई S/N",
+        transferredBy: "हस्तांतरितकर्ता",
+        logTransfer: "ट्रांसफर दर्ज करें",
+        exportData: "सीएसवी निर्यात करें",
+        saveSettings: "सेटिंग्स सहेजें",
+        themeToggle: "डार्क मोड",
+        language: "भाषा",
+        low: "कम",
+        medium: "मध्यम",
+        high: "उच्च",
+        critical: "अत्यंत महत्वपूर्ण",
+        open: "खुला",
+        inProgress: "प्रगति में",
+        pendingParts: "पुर्जों की प्रतीक्षा",
+        resolved: "हल किया गया",
+        closed: "बंद"
+      }
+    };
+
+    // Product Categories Specific to Vibin Technoproducts
+    const PRODUCT_TYPES = [
+      "Water Purification Systems",
+      "Industrial RO Plants",
+      "UV Sterilizers",
+      "Water Softeners",
+      "Dosing Pumps & Controllers",
+      "Laboratory Pure Water Units",
+      "Custom Automation Controllers"
+    ];
+
+    // Initial Mock Service Tickets
+    const INITIAL_TICKETS = [
+      {
+        id: "VTSM-1001",
+        customerName: "TechCorp Industries",
+        contact: "+91 98765 43210",
+        email: "service@techcorp.in",
+        productType: "Industrial RO Plants",
+        modelNo: "VTP-RO-500L",
+        serialNo: "SN-2024-RO-8841",
+        issue: "High Permeate Conductivity & Pressure Drop across Membrane Stage 2.",
+        status: "In Progress",
+        priority: "High",
+        assignedTo: "Ramesh Kumar",
+        createdDate: "2026-10-20"
+      },
+      {
+        id: "VTSM-1002",
+        customerName: "Apex Diagnostics Lab",
+        contact: "+91 91234 56789",
+        email: "lab.ops@apexdiag.com",
+        productType: "Laboratory Pure Water Units",
+        modelNo: "VTP-LAB-PURE-X",
+        serialNo: "SN-2025-LAB-0129",
+        issue: "TOC sensor calibration error and low output flow rate.",
+        status: "Open",
+        priority: "Critical",
+        assignedTo: "Suresh Babu",
+        createdDate: "2026-10-23"
+      },
+      {
+        id: "VTSM-1003",
+        customerName: "GreenHydro Farms",
+        contact: "+91 99887 76655",
+        email: "hydro@greenfarms.org",
+        productType: "Dosing Pumps & Controllers",
+        modelNo: "VTP-DOSE-AUTO",
+        serialNo: "SN-2023-DP-4402",
+        issue: "pH controller signal output fluctuating erratically.",
+        status: "Pending Parts",
+        priority: "Medium",
+        assignedTo: "Anitha Raj",
+        createdDate: "2026-10-18"
+      }
+    ];
+
+    // Initial Forward Tracking Items
+    const INITIAL_TRACKING = [
+      {
+        id: "FT-501",
+        partName: "High Pressure Booster Pump Impeller Assembly",
+        sourceSN: "SN-2024-RO-8841",
+        targetSN: "SN-2023-RO-1022",
+        transferredBy: "Ramesh Kumar",
+        date: "2026-10-22",
+        notes: "Replaced degraded impeller with refurb component for operational testing."
+      },
+      {
+        id: "FT-502",
+        partName: "Digital Flow Sensor Module (0-50 GPM)",
+        sourceSN: "SN-2025-LAB-0129",
+        targetSN: "SPARE-STOCK-BLR-01",
+        transferredBy: "Suresh Babu",
+        date: "2026-10-24",
+        notes: "Sent for precision factory recalibration."
+      }
+    ];
+
+    function App() {
+      const [lang, setLang] = useState('en');
+      const [darkMode, setDarkMode] = useState(false);
+      const [activeTab, setActiveTab] = useState('dashboard');
+      const [tickets, setTickets] = useState(INITIAL_TICKETS);
+      const [forwardLogs, setForwardLogs] = useState(INITIAL_TRACKING);
+      
+      // Filters & Search
+      const [searchTerm, setSearchTerm] = useState('');
+      const [statusFilter, setStatusFilter] = useState('');
+      const [productFilter, setProductFilter] = useState('');
+
+      // Modal Control
+      const [isModalOpen, setIsModalOpen] = useState(false);
+      const [isFTModalOpen, setIsFTModalOpen] = useState(false);
+
+      // New Ticket Form State
+      const [newTicketData, setNewTicketData] = useState({
+        customerName: '',
+        contact: '',
+        email: '',
+        productType: PRODUCT_TYPES[0],
+        modelNo: '',
+        serialNo: '',
+        issue: '',
+        priority: 'Medium',
+        assignedTo: 'Ramesh Kumar'
+      });
+
+      // New Forward Tracking Log State
+      const [newLogData, setNewLogData] = useState({
+        partName: '',
+        sourceSN: '',
+        targetSN: '',
+        transferredBy: 'Ramesh Kumar',
+        notes: ''
+      });
+
+      const t = translations[lang];
+
+      // Toggle Dark Mode Class on Document Root
+      useEffect(() => {
+        if (darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }, [darkMode]);
+
+      // Filtered Tickets Computation
+      const filteredTickets = useMemo(() => {
+        return tickets.filter(ticket => {
+          const matchesSearch = 
+            ticket.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            ticket.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            ticket.serialNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            ticket.modelNo.toLowerCase().includes(searchTerm.toLowerCase());
+          
+          const matchesStatus = statusFilter ? ticket.status === statusFilter : true;
+          const matchesProduct = productFilter ? ticket.productType === productFilter : true;
+
+          return matchesSearch && matchesStatus && matchesProduct;
+        });
+      }, [tickets, searchTerm, statusFilter, productFilter]);
+
+      // Handle Ticket Creation
+      const handleCreateTicket = (e) => {
+        e.preventDefault();
+        const newTicket = {
+          ...newTicketData,
+          id: `VTSM-${1000 + tickets.length + 1}`,
+          status: 'Open',
+          createdDate: new Date().toISOString().split('T')[0]
+        };
+        setTickets([newTicket, ...tickets]);
+        setIsModalOpen(false);
+        setNewTicketData({
+          customerName: '',
+          contact: '',
+          email: '',
+          productType: PRODUCT_TYPES[0],
+          modelNo: '',
+          serialNo: '',
+          issue: '',
+          priority: 'Medium',
+          assignedTo: 'Ramesh Kumar'
+        });
+      };
+
+      // Handle Forward Tracking Log Entry
+      const handleCreateLog = (e) => {
+        e.preventDefault();
+        const newEntry = {
+          ...newLogData,
+          id: `FT-${500 + forwardLogs.length + 1}`,
+          date: new Date().toISOString().split('T')[0]
+        };
+        setForwardLogs([newEntry, ...forwardLogs]);
+        setIsFTModalOpen(false);
+        setNewLogData({
+          partName: '',
+          sourceSN: '',
+          targetSN: '',
+          transferredBy: 'Ramesh Kumar',
+          notes: ''
+        });
+      };
+
+      // CSV Data Export
+      const exportToCSV = () => {
+        const headers = ["Ticket ID", "Customer", "Phone", "Product Category", "Model", "Serial No", "Status", "Priority", "Assigned To", "Date"];
+        const rows = tickets.map(t => [
+          t.id, `"${t.customerName}"`, t.contact, `"${t.productType}"`, t.modelNo, t.serialNo, t.status, t.priority, t.assignedTo, t.createdDate
+        ]);
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `VTSM_Tickets_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      return (
+        <div class="min-h-screen flex flex-col font-sans">
+          
+          <!-- Top Navigation Bar -->
+          <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              
+              <!-- Logo & Brand Name -->
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md">
+                  V
+                </div>
+                <div>
+                  <h1 class="font-bold text-lg text-slate-900 dark:text-white leading-tight">
+                    {t.appTitle}
+                  </h1>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
+                    {t.fullTitle}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Controls & Preferences -->
+              <div class="flex items-center space-x-3 sm:space-x-4">
+                <!-- Language Selector -->
+                <select 
+                  value={lang} 
+                  onChange={(e) => setLang(e.target.value)}
+                  class="bg-slate-100 dark:bg-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-200 border-0 rounded-md px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                >
+                  <option value="en">English (EN)</option>
+                  <option value="ta">தமிழ் (TA)</option>
+                  <option value="hi">हिन्दी (HI)</option>
+                </select>
+
+                <!-- Dark Mode Toggle Button -->
+                <button 
+                  onClick={() => setDarkMode(!darkMode)}
+                  class="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                  title={t.themeToggle}
+                >
+                  {darkMode ? '☀️' : '🌙'}
+                </button>
+
+                <!-- Create Ticket Button -->
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-md shadow transition flex items-center space-x-1"
+                >
+                  <span class="text-base font-bold">+</span>
+                  <span class="hidden sm:inline">{t.newTicket}</span>
+                </button>
+              </div>
+
+            </div>
+          </header>
+
+          <!-- Main Dashboard Layout -->
+          <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+            
+            <!-- Sidebar Nav -->
+            <aside class="w-full md:w-64 flex-shrink-0">
+              <nav class="flex md:flex-col space-x-2 md:space-x-0 md:space-y-1 bg-white dark:bg-slate-800 p-2 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <button 
+                  onClick={() => setActiveTab('dashboard')}
+                  class={`flex-1 md:w-full text-left px-4 py-2.5 rounded-lg font-medium text-sm flex items-center space-x-2 transition ${activeTab === 'dashboard' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                >
+                  <span>📊</span>
+                  <span>{t.dashboard}</span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('forward')}
+                  class={`flex-1 md:w-full text-left px-4 py-2.5 rounded-lg font-medium text-sm flex items-center space-x-2 transition ${activeTab === 'forward' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                >
+                  <span>🔄</span>
+                  <span>{t.forwardTrack}</span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab('analytics')}
+                  class={`flex-1 md:w-full text-left px-4 py-2.5 rounded-lg font-medium text-sm flex items-center space-x-2 transition ${activeTab === 'analytics' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                >
+                  <span>📈</span>
+                  <span>{t.analytics}</span>
+                </button>
+              </nav>
+
+              <!-- Quick Stats Summary -->
+              <div class="mt-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-4 text-white shadow-lg">
+                <h3 class="text-xs font-semibold tracking-wider uppercase opacity-80">Service Summary</h3>
+                <div class="mt-3 grid grid-cols-2 gap-2 text-center">
+                  <div class="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span class="text-2xl font-black">{tickets.length}</span>
+                    <span class="block text-[10px] opacity-80 uppercase mt-0.5">Total Tickets</span>
+                  </div>
+                  <div class="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span class="text-2xl font-black text-amber-300">{tickets.filter(t => t.status !== 'Resolved' && t.status !== 'Closed').length}</span>
+                    <span class="block text-[10px] opacity-80 uppercase mt-0.5">Active</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            <!-- Main Workspace Content area -->
+            <main class="flex-1 space-y-6">
+
+              {activeTab === 'dashboard' && (
+                <div>
+                  <!-- Controls & Filters Bar -->
+                  <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                    <div class="flex flex-col md:flex-row gap-3">
+                      
+                      <!-- Search Input -->
+                      <div class="flex-1 relative">
+                        <input 
+                          type="text" 
+                          placeholder={t.searchPlaceholder} 
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                        <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
+                      </div>
+
+                      <!-- Status Filter -->
+                      <select 
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        class="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">{t.allStatus}</option>
+                        <option value="Open">{t.open}</option>
+                        <option value="In Progress">{t.inProgress}</option>
+                        <option value="Pending Parts">{t.pendingParts}</option>
+                        <option value="Resolved">{t.resolved}</option>
+                      </select>
+
+                      <!-- Product Category Filter -->
+                      <select 
+                        value={productFilter}
+                        onChange={(e) => setProductFilter(e.target.value)}
+                        class="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">{t.allProducts}</option>
+                        {PRODUCT_TYPES.map(pt => (
+                          <option key={pt} value={pt}>{pt}</option>
+                        ))}
+                      </select>
+
+                      <!-- CSV Export -->
+                      <button 
+                        onClick={exportToCSV}
+                        class="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-lg transition flex items-center justify-center space-x-1"
+                      >
+                        <span>📥</span>
+                        <span>{t.exportData}</span>
+                      </button>
+
+                    </div>
+                  </div>
+
+                  <!-- Service Tickets Table -->
+                  <div class="mt-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-left border-collapse">
+                        <thead>
+                          <tr class="bg-slate-50 dark:bg-slate-700/50 text-xs font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 uppercase tracking-wider">
+                            <th class="p-4">{t.ticketId}</th>
+                            <th class="p-4">{t.customer}</th>
+                            <th class="p-4">{t.product}</th>
+                            <th class="p-4">{t.status}</th>
+                            <th class="p-4">{t.priority}</th>
+                            <th class="p-4">{t.assignedTo}</th>
+                            <th class="p-4 text-right">{t.actions}</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-700 text-sm">
+                          {filteredTickets.length > 0 ? (
+                            filteredTickets.map(ticket => (
+                              <tr key={ticket.id} class="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
+                                <td class="p-4 font-bold text-blue-600 dark:text-blue-400">{ticket.id}</td>
+                                <td class="p-4">
+                                  <div class="font-medium text-slate-900 dark:text-white">{ticket.customerName}</div>
+                                  <div class="text-xs text-slate-400">{ticket.contact}</div>
+                                </td>
+                                <td class="p-4">
+                                  <div class="text-slate-800 dark:text-slate-200 font-medium">{ticket.productType}</div>
+                                  <div class="text-xs text-slate-400">S/N: {ticket.serialNo}</div>
+                                </td>
+                                <td class="p-4">
+                                  <span class={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                    ticket.status === 'Open' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' :
+                                    ticket.status === 'In Progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+                                    ticket.status === 'Pending Parts' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
+                                    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                  }`}>
+                                    {ticket.status}
+                                  </span>
+                                </td>
+                                <td class="p-4">
+                                  <span class={`text-xs font-semibold ${
+                                    ticket.priority === 'Critical' ? 'text-rose-600 dark:text-rose-400 font-bold' :
+                                    ticket.priority === 'High' ? 'text-orange-500' : 'text-slate-500'
+                                  }`}>
+                                    {ticket.priority}
+                                  </span>
+                                </td>
+                                <td class="p-4 text-slate-600 dark:text-slate-300">{ticket.assignedTo}</td>
+                                <td class="p-4 text-right">
+                                  <button 
+                                    onClick={() => {
+                                      const nextStatus = ticket.status === 'Open' ? 'In Progress' : ticket.status === 'In Progress' ? 'Resolved' : 'Closed';
+                                      setTickets(tickets.map(item => item.id === ticket.id ? {...item, status: nextStatus} : item));
+                                    }}
+                                    class="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 px-2.5 py-1 rounded font-medium text-slate-700 dark:text-slate-200 transition"
+                                  >
+                                    Advance Status
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="7" class="p-8 text-center text-slate-400">
+                                No service records found matching your criteria.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Forward Tracking Section */}
+              {activeTab === 'forward' && (
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">{t.forwardTrackingTitle}</h2>
+                    <button 
+                      onClick={() => setIsFTModalOpen(true)}
+                      class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2 rounded-lg shadow transition"
+                    >
+                      + {t.logTransfer}
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-4">
+                    {forwardLogs.map(log => (
+                      <div key={log.id} class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="space-y-1">
+                          <div class="flex items-center space-x-2">
+                            <span class="font-bold text-blue-600 dark:text-blue-400">{log.id}</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">{log.partName}</span>
+                          </div>
+                          <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Source: <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-800 dark:text-slate-200">{log.sourceSN}</span> 
+                            ➡️ Target: <span class="font-mono bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-800 dark:text-slate-200">{log.targetSN}</span>
+                          </p>
+                          <p class="text-xs text-slate-600 dark:text-slate-400 italic">"{log.notes}"</p>
+                        </div>
+                        <div class="text-right text-xs text-slate-400">
+                          <div>Logged by: <span class="font-medium text-slate-700 dark:text-slate-300">{log.transferredBy}</span></div>
+                          <div>Date: {log.date}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Analytics Tab */}
+              {activeTab === 'analytics' && (
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Ticket Status Breakdown</h3>
+                    <div class="space-y-3">
+                      {['Open', 'In Progress', 'Pending Parts', 'Resolved'].map(st => {
+                        const count = tickets.filter(t => t.status === st).length;
+                        const pct = tickets.length ? Math.round((count / tickets.length) * 100) : 0;
+                        return (
+                          <div key={st} class="space-y-1">
+                            <div class="flex justify-between text-xs font-medium">
+                              <span class="text-slate-700 dark:text-slate-300">{st}</span>
+                              <span class="text-slate-500">{count} ({pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                              <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Top Product Issues</h3>
+                    <ul class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
+                      {PRODUCT_TYPES.slice(0,4).map((pt, i) => (
+                        <li key={pt} class="py-2.5 flex justify-between items-center">
+                          <span class="text-slate-800 dark:text-slate-200 font-medium">{pt}</span>
+                          <span class="bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full text-xs font-bold">
+                            {tickets.filter(t => t.productType === pt).length} Logged
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+            </main>
+          </div>
+
+          <!-- Create Ticket Modal -->
+          {isModalOpen && (
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">{t.createNewTicket}</h3>
+                  <button onClick={() => setIsModalOpen(false)} class="text-slate-400 hover:text-slate-600">✕</button>
+                </div>
+                <form onSubmit={handleCreateTicket} class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.customerName}</label>
+                    <input type="text" required value={newTicketData.customerName} onChange={e => setNewTicketData({...newTicketData, customerName: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.contactNumber}</label>
+                      <input type="text" required value={newTicketData.contact} onChange={e => setNewTicketData({...newTicketData, contact: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.email}</label>
+                      <input type="email" value={newTicketData.email} onChange={e => setNewTicketData({...newTicketData, email: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.productType}</label>
+                    <select value={newTicketData.productType} onChange={e => setNewTicketData({...newTicketData, productType: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500">
+                      {PRODUCT_TYPES.map(pt => <option key={pt} value={pt}>{pt}</option>)}
+                    </select>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.modelNo}</label>
+                      <input type="text" required value={newTicketData.modelNo} onChange={e => setNewTicketData({...newTicketData, modelNo: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.serialNo}</label>
+                      <input type="text" required value={newTicketData.serialNo} onChange={e => setNewTicketData({...newTicketData, serialNo: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.issueDescription}</label>
+                    <textarea rows="3" required value={newTicketData.issue} onChange={e => setNewTicketData({...newTicketData, issue: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                  </div>
+                  <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onClick={() => setIsModalOpen(false)} class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">{t.cancel}</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow">{t.submit}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <!-- Create Forward Tracking Log Modal -->
+          {isFTModalOpen && (
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">{t.logTransfer}</h3>
+                  <button onClick={() => setIsFTModalOpen(false)} class="text-slate-400 hover:text-slate-600">✕</button>
+                </div>
+                <form onSubmit={handleCreateLog} class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.partName}</label>
+                    <input type="text" required value={newLogData.partName} onChange={e => setNewLogData({...newLogData, partName: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.sourceSN}</label>
+                      <input type="text" required value={newLogData.sourceSN} onChange={e => setNewLogData({...newLogData, sourceSN: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.targetSN}</label>
+                      <input type="text" required value={newLogData.targetSN} onChange={e => setNewLogData({...newLogData, targetSN: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Transfer Notes</label>
+                    <textarea rows="2" value={newLogData.notes} onChange={e => setNewLogData({...newLogData, notes: e.target.value})} class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                  </div>
+                  <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onClick={() => setIsFTModalOpen(false)} class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium">{t.cancel}</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow">{t.submit}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <!-- Footer -->
+          <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 text-center text-xs text-slate-500">
+            Vibin Technoproducts Service Management System &copy; 2026. All rights reserved.
+          </footer>
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
